@@ -52,10 +52,24 @@
 </div>
 
 <div id="app" class="w-full max-w-md bg-white p-8 rounded-xl shadow-2xl transition-opacity duration-500">
-    <!-- Header -->
-    <h1 class="text-3xl font-extrabold text-center text-indigo-700 mb-6 tracking-tight">
-        Multiplication Blitz
+    
+    <!-- Centered Title -->
+    <h1 class="text-2xl font-extrabold text-indigo-700 tracking-tight text-center mb-4">
+        ⏱️ Multiplication Blitz
     </h1>
+    
+    <!-- Combined Score Line (Current Score Left, High Score Right) -->
+    <div class="flex justify-between items-center mb-6">
+        <!-- Current Score (Left Aligned) -->
+        <p id="currentScoreDisplay" class="text-xl font-bold text-green-700">
+            Score: 0
+        </p>
+        <!-- High Score (Right Aligned) -->
+        <span id="highScoreDisplay" class="text-xl font-semibold text-yellow-600 whitespace-nowrap">
+            🏆 High Score: 0
+        </span>
+    </div>
+
 
     <!-- Fuse/Progress Bar (Timer) -->
     <!-- The progress bar shrinks from right to left, towards the bomb icon on the left -->
@@ -83,7 +97,6 @@
 
     <!-- User Input and Controls -->
     <div class="space-y-4">
-        <!-- Removed "Your Answer:" label to tighten spacing -->
         <input type="number" id="answerInput" placeholder="Type your answer here"
                class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-md"
                autofocus>
@@ -93,8 +106,6 @@
             Check Answer
         </button>
     </div>
-
-    <!-- Removed feedbackContainer to tighten spacing -->
 </div>
 
 <script>
@@ -104,30 +115,67 @@
     // Timer constants and state
     const TIME_LIMIT_MS = 10000; // 10 seconds to answer
     const TIMER_INTERVAL_MS = 50; // Update every 50ms for smooth animation
+    const HIGH_SCORE_KEY = 'blitzHighScore'; // Key for localStorage
+
     let num1, num2, correctAnswer;
     let timeLeft = TIME_LIMIT_MS;
     let timerInterval;
     let gameActive = false; // State tracker
     let incorrectTimeout; // To hold the timeout for incorrect button feedback
+    
+    // Scoring state
+    let currentScore = 0;
+    let highScore = 0;
 
     // DOM Elements
     const questionDisplay = document.getElementById('questionDisplay');
     const answerInput = document.getElementById('answerInput');
     const checkButton = document.getElementById('checkButton');
-    // const feedbackContainer is no longer needed
     const progressBar = document.getElementById('progressBar');
     const gameOverOverlay = document.getElementById('gameOverOverlay');
     const restartButton = document.getElementById('restartButton');
     const appContainer = document.getElementById('app');
-    const toastContainer = document.getElementById('toastContainer'); // New toast element
+    const toastContainer = document.getElementById('toastContainer');
+    
+    // New Score DOM Elements
+    const highScoreDisplay = document.getElementById('highScoreDisplay');
+    const currentScoreDisplay = document.getElementById('currentScoreDisplay');
+
+    /**
+     * Loads high score from local storage.
+     */
+    function loadHighScore() {
+        const storedScore = localStorage.getItem(HIGH_SCORE_KEY);
+        highScore = storedScore ? parseInt(storedScore, 10) : 0;
+    }
+
+    /**
+     * Saves new high score to local storage.
+     */
+    function saveHighScore() {
+        localStorage.setItem(HIGH_SCORE_KEY, highScore.toString());
+    }
+
+    /**
+     * Updates the score displays on the UI.
+     */
+    function updateScoreDisplay() {
+        currentScoreDisplay.textContent = `Score: ${currentScore}`;
+        highScoreDisplay.textContent = `🏆 High Score: ${highScore}`;
+    }
 
     /**
      * Initializes a new game session.
      */
     function startGame() {
+        // Reset score
+        currentScore = 0;
+        updateScoreDisplay();
+
         appContainer.style.opacity = 1; // Make app visible
         gameOverOverlay.classList.add('hidden'); // Hide game over overlay
         gameActive = true;
+        
         resetTimer();
         generateNewProblem();
     }
@@ -138,6 +186,14 @@
     function endGame() {
         clearInterval(timerInterval);
         gameActive = false;
+        
+        // Update High Score before showing overlay
+        if (currentScore > highScore) {
+            highScore = currentScore;
+            saveHighScore();
+            updateScoreDisplay(); // Update display immediately
+        }
+
         gameOverOverlay.classList.remove('hidden');
         appContainer.style.opacity = 0.3; // Dim the main app area
     }
@@ -193,7 +249,6 @@
         answerInput.value = '';
         answerInput.disabled = false;
         checkButton.disabled = false;
-        // feedbackContainer.innerHTML = ''; // Removed this, using toast instead
         answerInput.focus();
 
         // Generate numbers
@@ -251,6 +306,8 @@
         
         // --- Correct Answer Flow ---
         if (userAnswer === correctAnswer) {
+            currentScore++; // Increment score
+            updateScoreDisplay(); // Update score display
             resetTimer();
             generateNewProblem();
             return; // Exit, game continues immediately
@@ -301,7 +358,10 @@
     });
 
     // Start the application
-    window.onload = startGame;
+    window.onload = function() {
+        loadHighScore(); // Load high score on startup
+        startGame(); // Start the game
+    };
 </script>
 </body>
 </html>
