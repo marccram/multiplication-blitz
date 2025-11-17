@@ -9,15 +9,22 @@
     <!-- Set default font to Inter -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        
+        /* FIX for Mobile Keyboard Scrolling Issue */
+        /* We set the height to 100vh (h-screen) but allow vertical scrolling (overflow-y: auto)
+           This stabilizes the centering while letting the user scroll if the content is
+           pushed up by the keyboard. */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f7f7f7;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh; /* Use height: 100vh instead of min-height */
+            overflow-y: auto; /* Allow vertical scrolling if content is pushed */
             padding: 16px;
         }
+        
         .animate-pulse-slow {
             animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
